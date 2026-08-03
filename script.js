@@ -240,22 +240,32 @@ const qtDates = document.getElementById('qtDates');
 const qtLocation = document.getElementById('qtLocation');
 const qtTag = document.getElementById('qtTag');
 
-qtMarkers.forEach(marker => {
-  marker.addEventListener('click', () => {
-    const entry = qtEntries[Number(marker.dataset.index)];
-    qtMarkers.forEach(m => m.classList.remove('is-active'));
-    marker.classList.add('is-active');
-    qtLogo.textContent = entry.logo;
-    qtRole.textContent = entry.role;
-    qtDates.textContent = entry.dates;
-    qtLocation.textContent = entry.location;
-    qtTag.textContent = entry.tag;
+function renderQtEntry(index, animate) {
+  const entry = qtEntries[index];
+  qtLogo.textContent = entry.logo;
+  qtRole.textContent = entry.role;
+  qtDates.textContent = entry.dates;
+  qtLocation.textContent = entry.location;
+  qtTag.textContent = entry.tag;
 
+  if (animate) {
     qtCard.classList.remove('qt-animate');
     void qtCard.offsetWidth;
     qtCard.classList.add('qt-animate');
+  }
+}
+
+qtMarkers.forEach(marker => {
+  marker.addEventListener('click', () => {
+    qtMarkers.forEach(m => m.classList.remove('is-active'));
+    marker.classList.add('is-active');
+    renderQtEntry(Number(marker.dataset.index), true);
   });
 });
+
+// Sync the card to qtEntries[0] on load — the static HTML is just a fallback
+// for no-JS and shouldn't be trusted to stay in sync with this data by hand.
+renderQtEntry(0, false);
 
 // Custom cursor — small arrow that follows the pointer, with a click ripple
 const cursorDot = document.getElementById('cursorDot');
