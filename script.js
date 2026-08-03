@@ -104,14 +104,20 @@ if (projCarousel) {
     dragMoved = false;
     dragStartX = e.clientX;
     dragStartScroll = projCarousel.scrollLeft;
-    projCarousel.classList.add('is-dragging');
     projCarousel.setPointerCapture(e.pointerId);
   });
 
   projCarousel.addEventListener('pointermove', (e) => {
     if (!isDragging) return;
     const dx = e.clientX - dragStartX;
-    if (Math.abs(dx) > 4) dragMoved = true;
+    // Only start suppressing pointer-events on the slides (and showing the
+    // grabbing cursor) once this is a real drag — not on every mousedown,
+    // which would disable pointer-events on the very link being clicked
+    // before its click event ever fires, silently swallowing plain clicks.
+    if (!dragMoved && Math.abs(dx) > 4) {
+      dragMoved = true;
+      projCarousel.classList.add('is-dragging');
+    }
     projCarousel.scrollLeft = dragStartScroll - dx;
   });
 
