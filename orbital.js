@@ -25,6 +25,15 @@ function initOrbital() {
   // however many cards actually exist, instead of a value baked in for a fixed card count.
   ring.style.setProperty('--oc-step', `${STEP}deg`);
 
+  // Ring radius (translateZ) must grow with card count too, or adjacent cards physically
+  // intersect once they're spaced fewer degrees apart. Solve for the radius at which
+  // neighboring card edges just clear each other: (width/2) / tan(pi/COUNT), plus a
+  // fixed gap so cards keep visible separation instead of merely touching.
+  const CARD_WIDTH = 425; // must match .orbital-card width in style.css
+  const CARD_GAP = 22;
+  const radius = CARD_WIDTH / 2 / Math.tan(Math.PI / COUNT) + CARD_GAP;
+  ring.style.setProperty('--oc-radius', `${radius.toFixed(1)}px`);
+
   const BASE_TILT = -6;
   const STEP_COOLDOWN = 550; // ms — one scroll gesture = one step, ignore the rest of it
 

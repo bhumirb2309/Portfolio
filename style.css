@@ -871,7 +871,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; }
   height: 216px;
   left: -212.5px;
   top: -108px;
-  transform: rotateY(calc(var(--i) * var(--oc-step, 72deg))) translateZ(315px);
+  transform: rotateY(calc(var(--i) * var(--oc-step, 72deg))) translateZ(var(--oc-radius, 315px));
   transform-style: preserve-3d;
   border-radius: 10px;
   cursor: pointer;
