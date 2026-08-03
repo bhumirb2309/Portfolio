@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCR Invoice–PO Validator — Demo</title>
+<style>
+  :root {
+    --violet: #4c1d95; --violet-2: #5b21b6; --accent: #7c3aed; --cyan: #0891b2; --green: #16a34a; --red: #dc2626;
+    --bg: #f5f3ff; --panel: #ffffff; --border: #e5e0f5; --text: #1e1b2e; --text-dim: #6b6480;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); }
+
+  .topbar { background: linear-gradient(90deg, var(--violet), var(--violet-2)); color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .topbar__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .topbar__brand .logo { width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+  .demo-badge { background: rgba(255,255,255,0.15); color: #ddd6fe; border: 1px solid rgba(255,255,255,0.3); padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; }
+  .tab-switch { display: flex; gap: 6px; }
+  .tab-switch button { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #ede9fe; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; }
+  .tab-switch button.is-active { background: #fff; color: var(--violet); font-weight: 700; }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 24px; }
+  .view { display: none; }
+  .view.is-active { display: block; }
+
+  .upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 700px) { .upload-row { grid-template-columns: 1fr; } }
+  .upload-card { background: var(--panel); border: 2px dashed var(--border); border-radius: 10px; padding: 26px; text-align: center; cursor: pointer; transition: border-color 0.15s ease; }
+  .upload-card:hover { border-color: var(--accent); }
+  .upload-card.is-uploaded { border-style: solid; border-color: var(--green); background: #f0fdf4; }
+  .upload-card .icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .upload-card .title { font-weight: 700; font-size: 0.9rem; }
+  .upload-card .sub { font-size: 0.78rem; color: var(--text-dim); margin-top: 4px; }
+
+  .btn-run { display: block; width: 100%; background: var(--accent); color: #fff; border: none; padding: 13px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-bottom: 20px; }
+  .btn-run:disabled { background: #d1d5db; cursor: not-allowed; }
+
+  .progress-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; display: none; }
+  .progress-wrap.is-visible { display: block; }
+  .progress-wrap .label { font-size: 0.84rem; margin-bottom: 10px; color: var(--text-dim); }
+  .progress-track { height: 8px; border-radius: 999px; background: #ede9fe; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--cyan)); transition: width 0.3s ease; }
+
+  .result-box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; display: none; }
+  .result-box.is-visible { display: block; }
+  .result-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .result-head h3 { margin: 0; font-size: 0.98rem; }
+  .score-pill { padding: 6px 14px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; }
+  .score-pill.high { background: #dcfce7; color: #166534; }
+  .score-pill.low { background: #fee2e2; color: #991b1b; }
+
+  table.match-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  table.match-table th { text-align: left; color: var(--text-dim); font-weight: 600; padding: 8px 10px; border-bottom: 2px solid var(--border); font-size: 0.72rem; text-transform: uppercase; }
+  table.match-table td { padding: 10px; border-bottom: 1px solid var(--border); }
+  .match-icon.ok { color: var(--green); font-weight: 800; }
+  .match-icon.bad { color: var(--red); font-weight: 800; }
+  .mismatch-cell { color: var(--red); font-weight: 600; }
+
+  .roi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .roi-grid { grid-template-columns: 1fr; } }
+  .roi-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .roi-card h3 { margin: 0 0 14px; font-size: 0.95rem; }
+  .roi-card .provider-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .roi-card.a .provider-tag { background: #ede9fe; color: #5b21b6; }
+  .roi-card.b .provider-tag { background: #cffafe; color: #155e75; }
+  .roi-metric { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.86rem; }
+  .roi-metric:last-child { border-bottom: none; }
+  .roi-metric .val { font-weight: 700; }
+  .roi-verdict { margin-top: 14px; padding: 10px 12px; background: #f0fdf4; border-radius: 8px; font-size: 0.82rem; color: #166534; font-weight: 600; }
+
+  .footnote { text-align: center; color: var(--text-dim); font-size: 0.76rem; margin: 6px 0 20px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__brand"><div class="logo">🔎</div> OCR Invoice–PO Validator</div>
+  <span class="demo-badge">SANITIZED DEMO · ILLUSTRATIVE DATA ONLY</span>
+  <div class="tab-switch" id="tabSwitch">
+    <button class="is-active" data-view="validator">Validator</button>
+    <button data-view="roi">Vendor ROI</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="view is-active" id="viewValidator">
+    <div class="upload-row">
+      <div class="upload-card" id="uploadInvoice">
+        <div class="icon">🧾</div>
+        <div class="title">Invoice document</div>
+        <div class="sub">Click to simulate upload — invoice_INV4521.pdf</div>
+      </div>
+      <div class="upload-card" id="uploadPO">
+        <div class="icon">📄</div>
+        <div class="title">Purchase Order</div>
+        <div class="sub">Click to simulate upload — po_4521.pdf</div>
+      </div>
+    </div>
+
+    <button class="btn-run" id="btnRun" disabled>Run OCR Comparison</button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="label" id="progressLabel">Extracting fields via OCR…</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-head">
+        <h3>Field Comparison</h3>
+        <span class="score-pill high" id="scorePill">92% Match</span>
+      </div>
+      <table class="match-table">
+        <thead><tr><th>Field</th><th>Invoice</th><th>Purchase Order</th><th>Match</th></tr></thead>
+        <tbody id="matchBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="view" id="viewRoi">
+    <div class="roi-grid">
+      <div class="roi-card a">
+        <span class="provider-tag">PROVIDER A</span>
+        <h3>Legacy OCR Engine</h3>
+        <div class="roi-metric"><span>Accuracy</span><span class="val">91.2%</span></div>
+        <div class="roi-metric"><span>Cost / page</span><span class="val">₹1.80</span></div>
+        <div class="roi-metric"><span>Avg. processing time</span><span class="val">4.1s</span></div>
+        <div class="roi-metric"><span>Manual review rate</span><span class="val">8.8%</span></div>
+      </div>
+      <div class="roi-card b">
+        <span class="provider-tag">PROVIDER B</span>
+        <h3>Cloud OCR Engine</h3>
+        <div class="roi-metric"><span>Accuracy</span><span class="val">97.6%</span></div>
+        <div class="roi-metric"><span>Cost / page</span><span class="val">₹1.15</span></div>
+        <div class="roi-metric"><span>Avg. processing time</span><span class="val">1.8s</span></div>
+        <div class="roi-metric"><span>Manual review rate</span><span class="val">2.4%</span></div>
+      </div>
+    </div>
+    <div class="roi-verdict">✓ Recommendation delivered to leadership: Provider B — 36% lower cost/page, 2.3x faster, 6.4pt higher accuracy.</div>
+  </div>
+
+  <p class="footnote">Reconstructed portfolio demo of the OCR invoice–PO validator built into SARA — documents, figures, and vendor names are illustrative.</p>
+</div>
+
+<script>
+  document.getElementById('tabSwitch').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    document.querySelectorAll('#tabSwitch button').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('is-active'));
+    document.getElementById(btn.dataset.view === 'roi' ? 'viewRoi' : 'viewValidator').classList.add('is-active');
+  });
+
+  let invoiceUp = false, poUp = false;
+  function checkReady() {
+    document.getElementById('btnRun').disabled = !(invoiceUp && poUp);
+  }
+  document.getElementById('uploadInvoice').addEventListener('click', function () {
+    invoiceUp = true;
+    this.classList.add('is-uploaded');
+    this.querySelector('.sub').textContent = '✓ invoice_INV4521.pdf uploaded';
+    checkReady();
+  });
+  document.getElementById('uploadPO').addEventListener('click', function () {
+    poUp = true;
+    this.classList.add('is-uploaded');
+    this.querySelector('.sub').textContent = '✓ po_4521.pdf uploaded';
+    checkReady();
+  });
+
+  const fields = [
+    { name: 'Vendor Name', invoice: 'Coral Bay Exports LLC', po: 'Coral Bay Exports LLC', match: true },
+    { name: 'PO Number', invoice: 'PO-4521', po: 'PO-4521', match: true },
+    { name: 'Invoice Amount', invoice: '₹ 8,42,000', po: '₹ 8,42,000', match: true },
+    { name: 'Invoice Date', invoice: '2026-07-02', po: '2026-06-28', match: false },
+    { name: 'Quantity', invoice: '120 units', po: '120 units', match: true },
+    { name: 'GST Number', invoice: '27AACCC1234F1Z5', po: '27AACCC1234F1Z5', match: true },
+  ];
+
+  document.getElementById('btnRun').addEventListener('click', function () {
+    this.disabled = true;
+    const wrap = document.getElementById('progressWrap');
+    const fill = document.getElementById('progressFill');
+    const label = document.getElementById('progressLabel');
+    document.getElementById('resultBox').classList.remove('is-visible');
+    wrap.classList.add('is-visible');
+    fill.style.width = '0%';
+
+    const steps = ['Extracting fields via OCR…', 'Matching invoice fields to PO…', 'Computing match score…'];
+    let step = 0;
+    label.textContent = steps[0];
+    const timer = setInterval(() => {
+      step++;
+      const pct = Math.min(step * 34, 100);
+      fill.style.width = pct + '%';
+      if (step < steps.length) label.textContent = steps[step];
+      if (pct >= 100) {
+        clearInterval(timer);
+        setTimeout(() => {
+          wrap.classList.remove('is-visible');
+          renderResult();
+        }, 300);
+      }
+    }, 550);
+  });
+
+  function renderResult() {
+    const matches = fields.filter(f => f.match).length;
+    const score = Math.round((matches / fields.length) * 100);
+    const pill = document.getElementById('scorePill');
+    pill.textContent = `${score}% Match`;
+    pill.className = `score-pill ${score >= 90 ? 'high' : 'low'}`;
+    document.getElementById('matchBody').innerHTML = fields.map(f => `
+      <tr>
+        <td>${f.name}</td>
+        <td>${f.invoice}</td>
+        <td class="${f.match ? '' : 'mismatch-cell'}">${f.po}</td>
+        <td class="match-icon ${f.match ? 'ok' : 'bad'}">${f.match ? '✓' : '✕'}</td>
+      </tr>`).join('');
+    document.getElementById('resultBox').classList.add('is-visible');
+  }
+</script>
+</body>
+</html>

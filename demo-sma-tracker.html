@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMA Report Management System — Demo</title>
+<style>
+  :root {
+    --teal: #0f766e; --teal-2: #115e59; --accent: #0d9488; --amber: #d97706; --red: #dc2626; --green: #16a34a;
+    --bg: #f2f6f5; --panel: #ffffff; --border: #dde5e3; --text: #0f172a; --text-dim: #64748b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); }
+
+  .topbar { background: linear-gradient(90deg, var(--teal), var(--teal-2)); color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .topbar__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .topbar__brand .logo { width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+  .demo-badge { background: rgba(255,255,255,0.15); color: #ccfbf1; border: 1px solid rgba(255,255,255,0.3); padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; }
+
+  .reminder { background: #fffbeb; border-bottom: 1px solid #fde68a; color: #92400e; font-size: 0.84rem; padding: 9px 28px; text-align: center; }
+
+  .wrap { max-width: 1150px; margin: 0 auto; padding: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1.3fr; gap: 18px; margin-bottom: 20px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel-box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .panel-box h3 { margin: 0 0 4px; font-size: 0.98rem; }
+  .panel-box .sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 16px; }
+
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display: block; font-size: 0.76rem; font-weight: 600; color: var(--text-dim); margin-bottom: 5px; }
+  .form-row input, .form-row select {
+    width: 100%; padding: 9px 11px; border-radius: 7px; border: 1px solid var(--border); font-size: 0.86rem; outline: none;
+  }
+  .form-row input:focus, .form-row select:focus { border-color: var(--accent); }
+  .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-submit { width: 100%; background: var(--accent); color: #fff; border: none; padding: 11px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; margin-top: 4px; }
+  .btn-submit:hover { background: var(--teal); }
+
+  table.entry-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  table.entry-table th { text-align: left; color: var(--text-dim); font-weight: 600; padding: 8px 10px; border-bottom: 2px solid var(--border); font-size: 0.7rem; text-transform: uppercase; }
+  table.entry-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
+  table.entry-table tr:last-child td { border-bottom: none; }
+  .cat-tag { padding: 2px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 700; }
+  .cat-tag.sma0 { background: #dcfce7; color: #166534; }
+  .cat-tag.sma1 { background: #fef9c3; color: #854d0e; }
+  .cat-tag.sma2 { background: #fee2e2; color: #991b1b; }
+
+  .report-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .currency-card { flex: 1; min-width: 140px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .currency-card .cur { font-size: 0.72rem; color: var(--text-dim); font-weight: 700; }
+  .currency-card .amt { font-size: 1.2rem; font-weight: 800; color: var(--teal); }
+
+  .search-box { display: flex; gap: 8px; margin-bottom: 14px; }
+  .search-box input { flex: 1; padding: 9px 12px; border-radius: 7px; border: 1px solid var(--border); font-size: 0.85rem; }
+  .search-box button { background: var(--teal); color: #fff; border: none; padding: 9px 16px; border-radius: 7px; font-size: 0.82rem; cursor: pointer; font-weight: 600; }
+
+  .footnote { text-align: center; color: var(--text-dim); font-size: 0.76rem; margin: 6px 0 20px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__brand"><div class="logo">📋</div> SMA Report Management System</div>
+  <span class="demo-badge">SANITIZED DEMO · ILLUSTRATIVE DATA ONLY</span>
+</div>
+
+<div class="reminder" id="reminderBar">⏰ Automated reminder: 3 SMA entries pending review for today</div>
+
+<div class="wrap">
+
+  <div class="grid-2">
+    <div class="panel-box">
+      <h3>Daily Entry</h3>
+      <div class="sub">Log a new Special Mention Account observation</div>
+      <div class="form-row"><label>Client Name</label><input type="text" id="fClient" placeholder="e.g. Meridian Textiles Pvt Ltd"></div>
+      <div class="form-2col">
+        <div class="form-row"><label>Currency</label>
+          <select id="fCurrency"><option>INR</option><option>USD</option><option>EUR</option></select>
+        </div>
+        <div class="form-row"><label>Amount</label><input type="number" id="fAmount" placeholder="e.g. 42.5"></div>
+      </div>
+      <div class="form-row"><label>SMA Category</label>
+        <select id="fCategory"><option value="sma0">SMA-0 (1–30 days)</option><option value="sma1">SMA-1 (31–60 days)</option><option value="sma2">SMA-2 (61–90 days)</option></select>
+      </div>
+      <button class="btn-submit" id="btnAddEntry">+ Add Entry</button>
+    </div>
+
+    <div class="panel-box">
+      <h3>Recent Entries</h3>
+      <div class="sub">Today's logged observations across all currencies</div>
+      <table class="entry-table">
+        <thead><tr><th>Client</th><th>Amount</th><th>Category</th><th>Time</th></tr></thead>
+        <tbody id="entryBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel-box" style="margin-bottom:18px;">
+    <h3>Currency-wise Report</h3>
+    <div class="sub">Auto-generated summary across active SMA entries</div>
+    <div class="report-row" id="currencyReport"></div>
+  </div>
+
+  <div class="panel-box">
+    <h3>Historical Lookup</h3>
+    <div class="sub">Search past SMA entries by client name</div>
+    <div class="search-box">
+      <input type="text" id="histSearch" placeholder="Search client name…">
+      <button id="histBtn">Search</button>
+    </div>
+    <table class="entry-table">
+      <thead><tr><th>Client</th><th>Amount</th><th>Category</th><th>Date</th></tr></thead>
+      <tbody id="histBody"></tbody>
+    </table>
+  </div>
+
+  <p class="footnote">Reconstructed portfolio demo of the internal SMA tracker — client names and figures are illustrative, no real Debt Department data is shown.</p>
+</div>
+
+<script>
+  const catLabel = { sma0: 'SMA-0', sma1: 'SMA-1', sma2: 'SMA-2' };
+  const entries = [];
+
+  const history = [
+    { client: 'Meridian Textiles Pvt Ltd', amount: 42.5, currency: 'INR', category: 'sma1', date: '2026-07-18' },
+    { client: 'Coral Bay Exports LLC', amount: 12.8, currency: 'USD', category: 'sma0', date: '2026-07-15' },
+    { client: 'Northgate Traders Ltd', amount: 8.2, currency: 'INR', category: 'sma2', date: '2026-07-10' },
+    { client: 'Alto Vista Imports GmbH', amount: 5.4, currency: 'EUR', category: 'sma0', date: '2026-07-08' },
+    { client: 'Meridian Textiles Pvt Ltd', amount: 39.1, currency: 'INR', category: 'sma0', date: '2026-06-28' },
+  ];
+
+  function renderEntries() {
+    const body = document.getElementById('entryBody');
+    body.innerHTML = entries.length
+      ? entries.map(e => `<tr><td>${e.client}</td><td>${e.currency} ${e.amount.toFixed(1)}</td><td><span class="cat-tag ${e.category}">${catLabel[e.category]}</span></td><td>${e.time}</td></tr>`).join('')
+      : `<tr><td colspan="4" style="color:var(--text-dim); text-align:center; padding:16px 10px;">No entries logged yet today</td></tr>`;
+  }
+
+  function renderReport() {
+    const totals = { INR: 0, USD: 0, EUR: 0 };
+    entries.forEach(e => totals[e.currency] += e.amount);
+    history.forEach(e => totals[e.currency] += e.amount);
+    const el = document.getElementById('currencyReport');
+    el.innerHTML = Object.entries(totals).map(([cur, amt]) => `
+      <div class="currency-card"><div class="cur">${cur} TOTAL</div><div class="amt">${cur === 'INR' ? '₹' : cur === 'USD' ? '$' : '€'}${amt.toFixed(1)} Cr</div></div>
+    `).join('');
+  }
+
+  document.getElementById('btnAddEntry').addEventListener('click', () => {
+    const client = document.getElementById('fClient').value.trim() || 'Unnamed Client';
+    const currency = document.getElementById('fCurrency').value;
+    const amount = parseFloat(document.getElementById('fAmount').value) || 0;
+    const category = document.getElementById('fCategory').value;
+    entries.unshift({ client, currency, amount, category, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+    document.getElementById('fClient').value = '';
+    document.getElementById('fAmount').value = '';
+    renderEntries();
+    renderReport();
+  });
+
+  document.getElementById('histBtn').addEventListener('click', runSearch);
+  document.getElementById('histSearch').addEventListener('keydown', (e) => { if (e.key === 'Enter') runSearch(); });
+  function runSearch() {
+    const q = document.getElementById('histSearch').value.trim().toLowerCase();
+    const results = q ? history.filter(h => h.client.toLowerCase().includes(q)) : history;
+    document.getElementById('histBody').innerHTML = results.length
+      ? results.map(h => `<tr><td>${h.client}</td><td>${h.currency} ${h.amount.toFixed(1)}</td><td><span class="cat-tag ${h.category}">${catLabel[h.category]}</span></td><td>${h.date}</td></tr>`).join('')
+      : `<tr><td colspan="4" style="color:var(--text-dim); text-align:center; padding:16px 10px;">No matching records</td></tr>`;
+  }
+
+  document.getElementById('histBody').innerHTML = history.map(h => `<tr><td>${h.client}</td><td>${h.currency} ${h.amount.toFixed(1)}</td><td><span class="cat-tag ${h.category}">${catLabel[h.category]}</span></td><td>${h.date}</td></tr>`).join('');
+
+  renderEntries();
+  renderReport();
+</script>
+</body>
+</html>

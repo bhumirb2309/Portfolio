@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SARA - AI Enterprise Assistant</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;height:100vh;overflow:hidden;background:#f5f5f5;}
+.app{display:flex;height:100vh;}
+
+/* Sidebar */
+.sidebar{width:250px;background:#fff;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;padding:16px;}
+.sidebar-logo{text-align:center;padding:10px 0 16px;border-bottom:1px solid #eee;margin-bottom:12px;}
+.sidebar-logo img{width:120px;height:auto;}
+.sidebar-logo h2{font-size:16px;color:#1a237e;margin-top:6px;font-weight:700;}
+.sidebar-logo p{font-size:10px;color:#888;margin-top:2px;}
+.new-chat-btn{background:linear-gradient(135deg,#1a237e,#3949ab);color:white;border:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-bottom:12px;display:flex;align-items:center;gap:8px;justify-content:center;}
+.new-chat-btn:hover{background:linear-gradient(135deg,#0d47a1,#1976d2);}
+.chat-list{flex:1;overflow-y:auto;}
+.chat-item{padding:10px 12px;border-radius:8px;font-size:12px;color:#555;cursor:pointer;margin-bottom:4px;display:flex;align-items:center;gap:8px;border:1px solid transparent;}
+.chat-item:hover{background:#f3f4f6;border-color:#e0e0e0;}
+.chat-item.active{background:linear-gradient(135deg,#e8eaf6,#c5cae9);border-color:#1a237e;}
+.sidebar-bottom{border-top:1px solid #eee;padding-top:12px;display:flex;flex-direction:column;gap:6px;}
+.sidebar-btn{padding:10px 12px;border-radius:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;border:none;width:100%;text-align:left;font-weight:500;}
+.tools-btn{background:linear-gradient(135deg,#1a237e,#3949ab);color:white;}
+.admin-btn{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);color:#2e7d32;}
+.logout-btn{background:linear-gradient(135deg,#ffebee,#ffcdd2);color:#d32f2f;}
+
+/* Main Chat */
+.main{flex:1;display:flex;flex-direction:column;background:#fafafa;}
+.chat-header{padding:14px 24px;background:#fff;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;}
+.chat-header h3{font-size:15px;color:#1a237e;font-weight:600;}
+.header-controls{display:flex;align-items:center;gap:10px;}
+.header-controls .toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:#666;padding:6px 10px;background:#f5f5f5;border-radius:6px;border:1px solid #e0e0e0;}
+.header-controls select{padding:5px 8px;border-radius:6px;border:1px solid #e0e0e0;font-size:11px;background:#fff;}
+.user-badge{display:flex;align-items:center;gap:8px;font-size:12px;color:#333;}
+.user-badge .avatar{width:30px;height:30px;background:linear-gradient(135deg,#1a237e,#3949ab);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+<div class="sidebar-logo">
+<div style="width:60px;height:60px;margin:0 auto;background:linear-gradient(135deg,#003B70,#0066cc);border-radius:12px;display:flex;align-items:center;justify-content:center;"><span style="color:white;font-size:22px;font-weight:800;">S</span></div>
+<h2>SARA</h2>
+<p>AI Enterprise Assistant</p>
+</div>
+<button class="new-chat-btn">+ New Chat</button>
+<div class="chat-list">
+<div class="chat-item active"><span class="material-icons" style="font-size:16px;">chat</span> Policy Query - Leave</div>
+<div class="chat-item"><span class="material-icons" style="font-size:16px;">chat</span> Client Outstanding HD Wire</div>
+<div class="chat-item"><span class="material-icons" style="font-size:16px;">chat</span> GST Rate Inquiry</div>
+<div class="chat-item"><span class="material-icons" style="font-size:16px;">chat</span> NPA Guidelines</div>
+<div class="chat-item"><span class="material-icons" style="font-size:16px;">chat</span> Factoring Process Flow</div>
+</div>
+<div class="sidebar-bottom">
+<button class="sidebar-btn tools-btn" onclick="toggleTools()">🛠️ Tools</button>
+<button class="sidebar-btn admin-btn">📊 Admin Dashboard</button>
+<button class="sidebar-btn logout-btn">🚪 Logout</button>
+</div>
+</div>
+
+<div class="main">
+<div class="chat-header">
+<h3>SARA - AI Response Assistant</h3>
+<div class="header-controls">
+<div class="toggle"><input type="checkbox" id="policyToggle"><label for="policyToggle" style="cursor:pointer;">Policy Search</label></div>
+<select><option>Select Department</option><option>Accounts</option><option>Credit</option><option>HR</option><option>Operations</option><option>Legal</option><option>IT</option><option>Risk</option><option>Treasury</option></select>
+<div class="user-badge"><div class="avatar">BB</div><span>Bhumi</span></div>
+</div>
+</div>
+
+<!-- Chat Messages -->
+<div class="chat-area" id="chatArea" style="flex:1;overflow-y:auto;padding:24px 40px;">
+
+<!-- Welcome -->
+<div style="text-align:center;margin:40px 0 30px;">
+<div style="width:60px;height:60px;margin:0 auto 12px;background:linear-gradient(135deg,#00695c,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="color:white;font-size:24px;">🤖</span></div>
+<h3 style="color:#1a237e;font-size:18px;">Hello! How can I help you today?</h3>
+<p style="color:#888;font-size:13px;margin-top:4px;">Ask about policies, query databases, analyze documents, or use tools</p>
+</div>
+
+<!-- Suggestion Cards -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:700px;margin:0 auto 30px;">
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<span style="font-size:20px;">📋</span><p style="font-size:11px;color:#555;margin-top:6px;">Leave Policy</p></div>
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<span style="font-size:20px;">📊</span><p style="font-size:11px;color:#555;margin-top:6px;">Client Data</p></div>
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<span style="font-size:20px;">📄</span><p style="font-size:11px;color:#555;margin-top:6px;">Convert Files</p></div>
+</div>
+
+<!-- Messages -->
+<div style="max-width:750px;margin:0 auto;">
+<!-- User Message -->
+<div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+<div style="max-width:70%;background:linear-gradient(135deg,#e8eaf6,#c5cae9);padding:14px 18px;border-radius:16px 16px 4px 16px;font-size:14px;color:#1a237e;border:1px solid rgba(26,35,126,0.15);">What is the leave policy for employees?</div>
+</div>
+
+<!-- AI Message -->
+<div style="display:flex;gap:10px;margin-bottom:16px;">
+<div style="width:32px;height:32px;background:linear-gradient(135deg,#00695c,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:white;font-size:12px;">AI</span></div>
+<div style="max-width:75%;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);padding:14px 18px;border-radius:4px 16px 16px 16px;font-size:14px;color:#1b5e20;border:1px solid rgba(76,175,80,0.2);line-height:1.7;">
+Based on the <b>HR Policy Manual (2024)</b>, here is the leave structure:<br><br>
+• <b>Casual Leave:</b> 12 days per year<br>
+• <b>Sick Leave:</b> 12 days per year<br>
+• <b>Earned Leave:</b> 30 days (accumulation allowed up to 300 days)<br>
+• <b>Maternity Leave:</b> 26 weeks as per Act<br><br>
+<span style="font-size:12px;color:#555;">📚 Source: HR Policy Manual, Section 4.2 - Leave Rules</span>
+</div>
+</div>
+
+<!-- User Message 2 -->
+<div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+<div style="max-width:70%;background:linear-gradient(135deg,#e8eaf6,#c5cae9);padding:14px 18px;border-radius:16px 16px 4px 16px;font-size:14px;color:#1a237e;border:1px solid rgba(26,35,126,0.15);">Show outstanding for India Glycols from database</div>
+</div>
+
+<!-- AI Message 2 with table -->
+<div style="display:flex;gap:10px;margin-bottom:16px;">
+<div style="width:32px;height:32px;background:linear-gradient(135deg,#00695c,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:white;font-size:12px;">AI</span></div>
+<div style="max-width:80%;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);padding:14px 18px;border-radius:4px 16px 16px 16px;font-size:14px;color:#1b5e20;border:1px solid rgba(76,175,80,0.2);line-height:1.7;">
+📊 <b>India Glycols Limited - Outstanding Position</b><br><br>
+<table style="width:100%;border-collapse:collapse;font-size:12px;background:white;border-radius:8px;overflow:hidden;margin:8px 0;">
+<tr style="background:#1a237e;color:white;"><th style="padding:8px 10px;text-align:left;">Parameter</th><th style="padding:8px 10px;text-align:right;">Value</th></tr>
+<tr><td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;">Client ID</td><td style="padding:7px 10px;text-align:right;border-bottom:1px solid #f0f0f0;">4521</td></tr>
+<tr><td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;">Business Type</td><td style="padding:7px 10px;text-align:right;border-bottom:1px solid #f0f0f0;">Domestic Factoring</td></tr>
+<tr><td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;">FIU Limit</td><td style="padding:7px 10px;text-align:right;border-bottom:1px solid #f0f0f0;">₹15.00 Cr</td></tr>
+<tr><td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;">Outstanding</td><td style="padding:7px 10px;text-align:right;border-bottom:1px solid #f0f0f0;font-weight:700;color:#1a237e;">₹12.40 Cr</td></tr>
+<tr><td style="padding:7px 10px;">Utilization</td><td style="padding:7px 10px;text-align:right;font-weight:600;">82.7%</td></tr>
+</table>
+<span style="font-size:12px;color:#555;">🔗 Query: SELECT * FROM client_master WHERE name LIKE '%India Glycols%'</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Chat Input -->
+<div style="padding:16px 40px 20px;background:#fff;border-top:1px solid #e0e0e0;">
+<div style="max-width:750px;margin:0 auto;display:flex;gap:10px;align-items:center;">
+<button style="padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#e3f2fd,#bbdefb);color:#1565c0;cursor:pointer;font-size:16px;" title="Attach File">📎</button>
+<input type="text" placeholder="Type your message..." style="flex:1;padding:13px 18px;border-radius:12px;border:1px solid #d0d5dd;font-size:14px;outline:none;" onfocus="this.style.borderColor='#1a237e';this.style.boxShadow='0 0 0 3px rgba(26,35,126,0.08)'" onblur="this.style.borderColor='#d0d5dd';this.style.boxShadow='none'" id="demoInput" onkeypress="if(event.key==='Enter')addDemoMsg()">
+<button onclick="addDemoMsg()" style="padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,#1a237e,#3949ab);color:white;font-weight:600;cursor:pointer;font-size:14px;">Send</button>
+</div>
+</div>
+</div>
+
+<!-- Tools Panel (hidden by default) -->
+<div id="toolsPanel" style="display:none;position:fixed;top:0;right:0;width:380px;height:100vh;background:#fff;box-shadow:-4px 0 20px rgba(0,0,0,0.1);z-index:100;overflow-y:auto;">
+<div style="padding:20px 24px;background:linear-gradient(135deg,#1a237e,#3949ab);color:white;display:flex;justify-content:space-between;align-items:center;">
+<h3 style="font-size:16px;">🛠️ Tools</h3>
+<span style="cursor:pointer;font-size:20px;" onclick="toggleTools()">✕</span>
+</div>
+<div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<div class="tool-tile" style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">📄</div><div style="font-size:11px;font-weight:600;color:#333;">File Converter</div></div>
+<div class="tool-tile" style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">📎</div><div style="font-size:11px;font-weight:600;color:#333;">PDF Merge</div></div>
+<div class="tool-tile" style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">✂️</div><div style="font-size:11px;font-weight:600;color:#333;">PDF Split</div></div>
+<div class="tool-tile" style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">🗜️</div><div style="font-size:11px;font-weight:600;color:#333;">PDF Compress</div></div>
+<div class="tool-tile" style="background:linear-gradient(135deg,#e65100,#ff6d00);border:none;border-radius:12px;padding:14px;cursor:pointer;text-align:center;color:white;transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">📽️</div><div style="font-size:11px;font-weight:600;">PPT Maker</div></div>
+<div class="tool-tile" style="background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:12px;padding:14px;cursor:pointer;text-align:center;color:white;transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">📧</div><div style="font-size:11px;font-weight:600;">Bulk Email</div></div>
+<div class="tool-tile" style="background:linear-gradient(135deg,#43a047,#2e7d32);border:none;border-radius:12px;padding:14px;cursor:pointer;text-align:center;color:white;transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">📋</div><div style="font-size:11px;font-weight:600;">NACH Mandate</div></div>
+<div class="tool-tile" style="background:linear-gradient(135deg,#0891b2,#0e7490);border:none;border-radius:12px;padding:14px;cursor:pointer;text-align:center;color:white;transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">💰</div><div style="font-size:11px;font-weight:600;">Payment Advice</div></div>
+<div class="tool-tile" style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">👥</div><div style="font-size:11px;font-weight:600;color:#333;">Employee Dir</div></div>
+<div class="tool-tile" style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">🔍</div><div style="font-size:11px;font-weight:600;color:#333;">PO/Invoice</div></div>
+<div class="tool-tile" style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">⌨️</div><div style="font-size:11px;font-weight:600;color:#333;">TypeLearn</div></div>
+<div class="tool-tile" style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#1a237e';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0';this.style.transform=''">
+<div style="font-size:24px;margin-bottom:6px;">📊</div><div style="font-size:11px;font-weight:600;color:#333;">Export Chat</div></div>
+</div>
+</div>
+
+</div><!-- end app -->
+
+<!-- Tool Modals -->
+<!-- Employee Directory -->
+<div id="empDirModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;">
+<div style="background:#fff;width:600px;max-height:80vh;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+<div style="padding:16px 20px;background:linear-gradient(135deg,#1a237e,#3949ab);color:white;display:flex;justify-content:space-between;align-items:center;">
+<h3 style="font-size:15px;">👥 Employee Directory</h3><span style="cursor:pointer;font-size:18px;" onclick="closeModal('empDirModal')">✕</span></div>
+<div style="padding:16px 20px;">
+<input type="text" id="empSearch" placeholder="🔍 Search by name..." oninput="searchEmp()" style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;margin-bottom:12px;">
+<div id="empResults" style="max-height:400px;overflow-y:auto;"></div>
+</div></div></div>
+
+<!-- TypeLearn -->
+<div id="typeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+<div style="background:#fff;width:650px;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+<div style="padding:16px 20px;background:linear-gradient(135deg,#0288d1,#01579b);color:white;display:flex;justify-content:space-between;align-items:center;">
+<h3 style="font-size:15px;">⌨️ TypeLearn - Typing Practice</h3><span style="cursor:pointer;font-size:18px;" onclick="closeModal('typeModal')">✕</span></div>
+<div style="padding:20px;">
+<div id="typeText" style="background:#f5f5f5;padding:16px;border-radius:10px;font-size:15px;line-height:1.8;margin-bottom:14px;min-height:80px;color:#666;"></div>
+<input type="text" id="typeInput" placeholder="Start typing here..." oninput="checkTyping()" style="width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:10px;font-size:15px;outline:none;" onfocus="this.style.borderColor='#0288d1'" onblur="this.style.borderColor='#e0e0e0'">
+<div style="display:flex;justify-content:space-between;margin-top:12px;font-size:13px;color:#666;">
+<span>WPM: <b id="wpmDisplay">0</b></span>
+<span>Accuracy: <b id="accDisplay">100%</b></span>
+<span>Time: <b id="timeDisplay">0s</b></span>
+</div>
+<button onclick="startTyping()" style="margin-top:12px;padding:10px 20px;background:#0288d1;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">New Passage</button>
+</div></div></div>
+
+<!-- File Converter -->
+<div id="converterModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+<div style="background:#fff;width:500px;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+<div style="padding:16px 20px;background:linear-gradient(135deg,#1a237e,#3949ab);color:white;display:flex;justify-content:space-between;align-items:center;">
+<h3 style="font-size:15px;">🔄 File Converter</h3><span style="cursor:pointer;font-size:18px;" onclick="closeModal('converterModal')">✕</span></div>
+<div style="padding:20px;">
+<div style="border:2px dashed #cbd5e1;border-radius:12px;padding:30px;text-align:center;cursor:pointer;margin-bottom:16px;" onclick="fakeUpload()">
+<div style="font-size:32px;margin-bottom:8px;">📁</div>
+<p style="font-size:13px;color:#666;" id="uploadLabel">Click to select file</p>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+<span onclick="selectFmt(this)" style="padding:7px 14px;background:#e8eaf6;border:2px solid #1a237e;border-radius:8px;font-size:12px;font-weight:600;color:#1a237e;cursor:pointer;">PDF</span>
+<span onclick="selectFmt(this)" style="padding:7px 14px;background:#f5f5f5;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;cursor:pointer;">Word</span>
+<span onclick="selectFmt(this)" style="padding:7px 14px;background:#f5f5f5;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;cursor:pointer;">Excel</span>
+<span onclick="selectFmt(this)" style="padding:7px 14px;background:#f5f5f5;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;cursor:pointer;">Text</span>
+</div>
+<div id="convertProgress" style="display:none;">
+<div style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-bottom:8px;"><div id="convBar" style="height:100%;background:linear-gradient(90deg,#1a237e,#3949ab);width:0%;transition:width 0.5s;border-radius:4px;"></div></div>
+<p id="convStatus" style="font-size:12px;color:#666;text-align:center;">Converting...</p>
+</div>
+</div></div></div>
+
+<script>
+// Employee Directory Data
+const employees=[
+{name:'Amit Sharma',dept:'Accounts',desig:'EVP - CFO',ext:'370',email:'cfo@company.in'},
+{name:'Rahul D.',dept:'Credit',desig:'Sr. Vice President',ext:'346',email:'rahul_d@company.in'},
+{name:'Ashish Mehta',dept:'Business Development',desig:'CBO',ext:'401',email:'cbo@company.in'},
+{name:'Kaveri S.',dept:'Operations',desig:'CTO',ext:'388',email:'cto@company.in'},
+{name:'Santosh K.',dept:'Admin',desig:'Manager',ext:'344',email:'santosh_k@company.in'},
+{name:'Tarun M.',dept:'Internal Audit',desig:'VP',ext:'362',email:'vp_ia@company.in'},
+{name:'Sunil B.',dept:'Operations',desig:'Deputy Manager',ext:'367',email:'sunil_b@company.in'},
+{name:'Priya S.',dept:'HR & Admin',desig:'Sr. Executive',ext:'341',email:'priya_s@company.in'},
+{name:'Nishita S.',dept:'Credit',desig:'Executive',ext:'355',email:'nishita_s@company.in'},
+{name:'Varsharani M.',dept:'IT',desig:'Asst. Manager',ext:'331',email:'varsharani_m@company.in'},
+{name:'Bhumi K.',dept:'IT',desig:'Executive',ext:'358',email:'bhumi_k@company.in'},
+{name:'Harshad K.',dept:'Company Secretary',desig:'Deputy Manager',ext:'338',email:'harshad_k@company.in'},
+];
+
+function searchEmp(){
+    const q=document.getElementById('empSearch').value.toLowerCase();
+    const results=employees.filter(e=>e.name.toLowerCase().includes(q)||e.dept.toLowerCase().includes(q));
+    document.getElementById('empResults').innerHTML=results.map(e=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid #f0f0f0;">
+            <div style="width:36px;height:36px;background:linear-gradient(135deg,#1a237e,#3949ab);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;">${e.name.split(' ').map(w=>w[0]).join('')}</div>
+            <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#333;">${e.name}</div><div style="font-size:11px;color:#888;">${e.desig} • ${e.dept}</div></div>
+            <div style="text-align:right;"><div style="font-size:11px;color:#1a237e;">Ext: ${e.ext}</div><div style="font-size:10px;color:#888;">${e.email}</div></div>
+        </div>`).join('')||(q?'<p style="text-align:center;color:#888;padding:20px;">No results found</p>':'');
+}
+
+// TypeLearn
+const passages=["The quick brown fox jumps over the lazy dog near the riverbank.","Financial institutions play a crucial role in the economic development of nations.","Factoring is a financial transaction involving the sale of receivable assets.","Digital transformation enables organizations to optimize their business processes."];
+let typeStart=0,typeTarget='',typeTimer=null;
+
+function startTyping(){
+    typeTarget=passages[Math.floor(Math.random()*passages.length)];
+    document.getElementById('typeText').textContent=typeTarget;
+    document.getElementById('typeInput').value='';
+    document.getElementById('typeInput').focus();
+    typeStart=Date.now();
+    if(typeTimer)clearInterval(typeTimer);
+    typeTimer=setInterval(()=>{document.getElementById('timeDisplay').textContent=Math.floor((Date.now()-typeStart)/1000)+'s';},1000);
+}
+
+function checkTyping(){
+    const typed=document.getElementById('typeInput').value;
+    const elapsed=(Date.now()-typeStart)/60000;
+    const words=typed.trim().split(/\s+/).length;
+    const wpm=elapsed>0?Math.round(words/elapsed):0;
+    document.getElementById('wpmDisplay').textContent=wpm;
+    let correct=0;
+    for(let i=0;i<typed.length;i++){if(typed[i]===typeTarget[i])correct++;}
+    const acc=typed.length>0?Math.round((correct/typed.length)*100):100;
+    document.getElementById('accDisplay').textContent=acc+'%';
+    // Highlight in display
+    let html='';
+    for(let i=0;i<typeTarget.length;i++){
+        if(i<typed.length){
+            html+=typed[i]===typeTarget[i]?`<span style="color:#2e7d32;font-weight:600;">${typeTarget[i]}</span>`:`<span style="color:#d32f2f;text-decoration:underline;">${typeTarget[i]}</span>`;
+        }else if(i===typed.length){html+=`<span style="border-left:2px solid #1a237e;">${typeTarget[i]}</span>`;}
+        else{html+=typeTarget[i];}
+    }
+    document.getElementById('typeText').innerHTML=html;
+    if(typed===typeTarget){clearInterval(typeTimer);document.getElementById('typeText').innerHTML+='<br><br><b style="color:#2e7d32;">✓ Complete! '+wpm+' WPM</b>';}
+}
+
+// File Converter
+function fakeUpload(){document.getElementById('uploadLabel').innerHTML='✓ <b>report_2026.xlsx</b> (42 KB)';document.getElementById('uploadLabel').parentElement.style.borderColor='#1a237e';document.getElementById('uploadLabel').parentElement.style.background='#f0f4ff';}
+function selectFmt(el){document.querySelectorAll('#converterModal span[onclick]').forEach(s=>{s.style.background='#f5f5f5';s.style.borderColor='#e0e0e0';s.style.color='#333';});el.style.background='#e8eaf6';el.style.borderColor='#1a237e';el.style.color='#1a237e';
+    document.getElementById('convertProgress').style.display='block';
+    let w=0;const bar=document.getElementById('convBar');const st=document.getElementById('convStatus');
+    const int=setInterval(()=>{w+=Math.random()*15;if(w>=100){w=100;clearInterval(int);st.innerHTML='<span style="color:#2e7d32;">✓ Converted! <a href="#" style="color:#1a237e;">Download report_2026.pdf</a></span>';}bar.style.width=w+'%';st.textContent=w<100?'Converting... '+Math.round(w)+'%':'';},200);
+}
+
+// Modal open/close
+function openModal(id){document.getElementById(id).style.display='flex';if(id==='empDirModal')searchEmp();if(id==='typeModal')startTyping();}
+function closeModal(id){document.getElementById(id).style.display='none';}
+
+// Wire up tool tiles to open modals
+document.addEventListener('DOMContentLoaded',()=>{
+    const tiles=document.querySelectorAll('.tool-tile');
+    tiles.forEach(t=>{
+        const text=t.textContent.trim();
+        if(text.includes('Employee'))t.onclick=()=>openModal('empDirModal');
+        if(text.includes('TypeLearn'))t.onclick=()=>openModal('typeModal');
+        if(text.includes('Converter'))t.onclick=()=>openModal('converterModal');
+    });
+});
+</script>
+
+<script>
+function toggleTools(){
+    const p=document.getElementById('toolsPanel');
+    p.style.display=p.style.display==='none'?'block':'none';
+}
+
+function addDemoMsg(){
+    const input=document.getElementById('demoInput');
+    const msg=input.value.trim();
+    if(!msg)return;
+    const area=document.getElementById('chatArea');
+    const container=area.querySelector('div[style*="max-width:750px"]');
+    
+    // Add user message
+    container.innerHTML+=`<div style="display:flex;justify-content:flex-end;margin-bottom:16px;animation:fadeIn 0.3s;">
+        <div style="max-width:70%;background:linear-gradient(135deg,#e8eaf6,#c5cae9);padding:14px 18px;border-radius:16px 16px 4px 16px;font-size:14px;color:#1a237e;border:1px solid rgba(26,35,126,0.15);">${msg}</div></div>`;
+    input.value='';
+    
+    // Add typing indicator
+    container.innerHTML+=`<div id="typing" style="display:flex;gap:10px;margin-bottom:16px;">
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,#00695c,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:white;font-size:12px;">AI</span></div>
+        <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);padding:14px 18px;border-radius:4px 16px 16px 16px;border:1px solid rgba(76,175,80,0.2);display:flex;gap:4px;">
+            <span style="width:6px;height:6px;background:#66bb6a;border-radius:50%;animation:bounce 1s infinite;"></span>
+            <span style="width:6px;height:6px;background:#66bb6a;border-radius:50%;animation:bounce 1s 0.2s infinite;"></span>
+            <span style="width:6px;height:6px;background:#66bb6a;border-radius:50%;animation:bounce 1s 0.4s infinite;"></span>
+        </div></div>`;
+    area.scrollTop=area.scrollHeight;
+    
+    // Replace with response after delay
+    setTimeout(()=>{
+        const responses=[
+            'Based on the indexed policy documents, here is the relevant information. The policy clearly states the guidelines you\'re asking about. Would you like me to elaborate further?',
+            'I found the data in our production database. The records show the current position as of today. Let me know if you need this exported or if you have follow-up queries.',
+            'According to the Operations Manual (Section 7.3), the process flow involves multiple steps including verification, approval, and disbursement. Shall I provide the detailed checklist?',
+            'The credit policy guidelines specify the exposure limits and assessment criteria for this type of transaction. I can also check the specific client-level parameters if needed.'
+        ];
+        const resp=responses[Math.floor(Math.random()*responses.length)];
+        document.getElementById('typing').outerHTML=`<div style="display:flex;gap:10px;margin-bottom:16px;animation:fadeIn 0.3s;">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,#00695c,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:white;font-size:12px;">AI</span></div>
+            <div style="max-width:75%;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);padding:14px 18px;border-radius:4px 16px 16px 16px;font-size:14px;color:#1b5e20;border:1px solid rgba(76,175,80,0.2);line-height:1.7;">${resp}</div></div>`;
+        area.scrollTop=area.scrollHeight;
+    },1500);
+}
+</script>
+<style>
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+</style>
+</body>
+</html>

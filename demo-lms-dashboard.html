@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LMS Executive Dashboard — Demo</title>
+<style>
+  :root {
+    --blue: #2563eb; --blue-dark: #1d4ed8; --orange: #f59e0b; --red: #dc2626; --green: #16a34a;
+    --bg: #f3f4f6; --panel: #ffffff; --border: #e5e7eb; --text: #111827; --text-dim: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); }
+
+  .topbar {
+    background: #111827; color: #fff; padding: 14px 28px; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  .topbar__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .topbar__brand .logo {
+    width: 30px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, var(--blue), var(--orange));
+    display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
+  }
+  .topbar__back { color: #cbd5e1; text-decoration: none; font-size: 0.85rem; }
+  .topbar__back:hover { color: #fff; }
+  .demo-badge {
+    background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4);
+    padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
+  }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  .filters { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filter-group { display: flex; flex-direction: column; gap: 8px; }
+  .filter-group label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); font-weight: 700; }
+  .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: #fff;
+    font-size: 0.82rem; cursor: pointer; transition: all 0.15s ease; color: var(--text);
+  }
+  .chip:hover { border-color: var(--blue); }
+  .chip.is-active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .kpi-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .kpi-card__label { font-size: 0.76rem; color: var(--text-dim); font-weight: 600; margin-bottom: 6px; }
+  .kpi-card__value { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; transition: color 0.2s ease; }
+  .kpi-card__delta { font-size: 0.78rem; margin-top: 6px; font-weight: 600; }
+  .kpi-card__delta.up { color: var(--green); }
+  .kpi-card__delta.down { color: var(--red); }
+  .kpi-card--fiu .kpi-card__value { color: var(--blue); }
+  .kpi-card--turnover .kpi-card__value { color: var(--orange); }
+  .kpi-card--npa .kpi-card__value { color: var(--red); }
+  .kpi-card--clients .kpi-card__value { color: #111827; }
+
+  .grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel-box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .panel-box h3 { margin: 0 0 4px; font-size: 0.98rem; }
+  .panel-box .sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 16px; }
+
+  .bars { display: flex; align-items: flex-end; gap: 18px; height: 200px; padding: 0 6px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bar { width: 100%; max-width: 48px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, var(--blue), var(--blue-dark)); transition: height 0.5s cubic-bezier(.4,0,.2,1); }
+  .bar-col .bar-val { font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .bar-col .bar-label { font-size: 0.72rem; color: var(--text-dim); margin-top: 8px; text-align: center; }
+
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut {
+    width: 140px; height: 140px; border-radius: 50%; flex-shrink: 0;
+    background: conic-gradient(var(--blue) 0 46%, var(--orange) 46% 74%, var(--green) 74% 100%);
+    position: relative; transition: background 0.4s ease;
+  }
+  .donut::after {
+    content: ''; position: absolute; inset: 20px; border-radius: 50%; background: var(--panel);
+  }
+  .legend { display: flex; flex-direction: column; gap: 10px; font-size: 0.82rem; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  table.branch-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  table.branch-table th { text-align: left; color: var(--text-dim); font-weight: 600; padding: 8px 10px; border-bottom: 2px solid var(--border); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  table.branch-table td { padding: 10px; border-bottom: 1px solid var(--border); }
+  table.branch-table tr:last-child td { border-bottom: none; }
+  .risk-tag { padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+  .risk-tag.low { background: #dcfce7; color: #166534; }
+  .risk-tag.med { background: #fef9c3; color: #854d0e; }
+  .risk-tag.high { background: #fee2e2; color: #991b1b; }
+
+  .footnote { text-align: center; color: var(--text-dim); font-size: 0.76rem; margin-top: 26px; padding-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__brand"><div class="logo">📊</div> LMS Executive Dashboard</div>
+  <span class="demo-badge">SANITIZED DEMO · ILLUSTRATIVE DATA ONLY</span>
+</div>
+
+<div class="wrap">
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Branch</label>
+      <div class="filter-chips" id="branchChips">
+        <button class="chip is-active" data-branch="all">All Branches</button>
+        <button class="chip" data-branch="mumbai">Mumbai</button>
+        <button class="chip" data-branch="delhi">Delhi</button>
+        <button class="chip" data-branch="chennai">Chennai</button>
+        <button class="chip" data-branch="pune">Pune</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Product</label>
+      <div class="filter-chips" id="productChips">
+        <button class="chip is-active" data-product="all">All Products</button>
+        <button class="chip" data-product="invoice">Invoice Discounting</button>
+        <button class="chip" data-product="bill">Bill Discounting</button>
+        <button class="chip" data-product="export">Export Factoring</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card kpi-card--fiu">
+      <div class="kpi-card__label">FIU Outstanding</div>
+      <div class="kpi-card__value" id="kpiFiu">₹ 412.6 Cr</div>
+      <div class="kpi-card__delta up" id="kpiFiuDelta">▲ 4.2% vs last month</div>
+    </div>
+    <div class="kpi-card kpi-card--turnover">
+      <div class="kpi-card__label">Monthly Turnover</div>
+      <div class="kpi-card__value" id="kpiTurnover">₹ 89.3 Cr</div>
+      <div class="kpi-card__delta up" id="kpiTurnoverDelta">▲ 7.8% vs last month</div>
+    </div>
+    <div class="kpi-card kpi-card--npa">
+      <div class="kpi-card__label">NPA %</div>
+      <div class="kpi-card__value" id="kpiNpa">2.31%</div>
+      <div class="kpi-card__delta down" id="kpiNpaDelta">▼ 0.3 pts vs last month</div>
+    </div>
+    <div class="kpi-card kpi-card--clients">
+      <div class="kpi-card__label">Active Clients</div>
+      <div class="kpi-card__value" id="kpiClients">318</div>
+      <div class="kpi-card__delta up" id="kpiClientsDelta">▲ 12 new this month</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel-box">
+      <h3>Outstanding by Branch</h3>
+      <div class="sub">FIU Outstanding, ₹ Cr — click a filter above to slice the view</div>
+      <div class="bars" id="branchBars"></div>
+    </div>
+    <div class="panel-box">
+      <h3>Product Mix</h3>
+      <div class="sub">Share of turnover by product line</div>
+      <div class="donut-wrap">
+        <div class="donut" id="donut"></div>
+        <div class="legend" id="donutLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-box">
+    <h3>Branch Risk Summary</h3>
+    <div class="sub">NPA trend and portfolio health by branch</div>
+    <table class="branch-table">
+      <thead><tr><th>Branch</th><th>Outstanding (₹ Cr)</th><th>NPA %</th><th>Trend (QoQ)</th><th>Risk</th></tr></thead>
+      <tbody id="branchTable"></tbody>
+    </table>
+  </div>
+
+  <p class="footnote">Portfolio demo reconstructing the real Power BI dashboard's KPI set and colour system — figures shown are illustrative, not production data.</p>
+</div>
+
+<script>
+  const state = { branch: 'all', product: 'all' };
+
+  const branchData = {
+    all:     { fiu: 412.6, turnover: 89.3, npa: 2.31, clients: 318, bars: [{l:'Mumbai',v:168},{l:'Delhi',v:96},{l:'Chennai',v:88},{l:'Pune',v:60.6}] },
+    mumbai:  { fiu: 168.4, turnover: 38.1, npa: 1.94, clients: 142, bars: [{l:'Mumbai',v:168.4},{l:'Delhi',v:0},{l:'Chennai',v:0},{l:'Pune',v:0}] },
+    delhi:   { fiu: 96.2,  turnover: 21.4, npa: 2.65, clients: 74,  bars: [{l:'Mumbai',v:0},{l:'Delhi',v:96.2},{l:'Chennai',v:0},{l:'Pune',v:0}] },
+    chennai: { fiu: 88.0,  turnover: 18.9, npa: 3.12, clients: 61,  bars: [{l:'Mumbai',v:0},{l:'Delhi',v:0},{l:'Chennai',v:88.0},{l:'Pune',v:0}] },
+    pune:    { fiu: 60.0,  turnover: 10.9, npa: 1.58, clients: 41,  bars: [{l:'Mumbai',v:0},{l:'Delhi',v:0},{l:'Chennai',v:0},{l:'Pune',v:60.0}] },
+  };
+
+  const productMix = {
+    all:     [46, 28, 26],
+    invoice: [78, 12, 10],
+    bill:    [15, 71, 14],
+    export:  [10, 9, 81],
+  };
+
+  const branchRisk = [
+    { name: 'Mumbai',  out: 168.4, npa: 1.94, trend: '▼ improving', risk: 'low' },
+    { name: 'Delhi',   out: 96.2,  npa: 2.65, trend: '▲ watch',     risk: 'med' },
+    { name: 'Chennai', out: 88.0,  npa: 3.12, trend: '▲ rising',    risk: 'high' },
+    { name: 'Pune',    out: 60.0,  npa: 1.58, trend: '▼ improving', risk: 'low' },
+  ];
+
+  function render() {
+    const d = branchData[state.branch];
+    document.getElementById('kpiFiu').textContent = `₹ ${d.fiu.toFixed(1)} Cr`;
+    document.getElementById('kpiTurnover').textContent = `₹ ${d.turnover.toFixed(1)} Cr`;
+    document.getElementById('kpiNpa').textContent = `${d.npa.toFixed(2)}%`;
+    document.getElementById('kpiClients').textContent = d.clients;
+
+    const maxBar = Math.max(...d.bars.map(b => b.v), 1);
+    const barsEl = document.getElementById('branchBars');
+    barsEl.innerHTML = d.bars.map(b => `
+      <div class="bar-col">
+        <span class="bar-val">${b.v ? '₹' + b.v.toFixed(1) + 'Cr' : '—'}</span>
+        <div class="bar" style="height:${b.v ? Math.max((b.v / maxBar) * 100, 4) : 2}%"></div>
+        <span class="bar-label">${b.l}</span>
+      </div>`).join('');
+
+    const mix = productMix[state.product === 'all' ? state.branch : state.product] || productMix.all;
+    const [invoice, bill, exp] = mix;
+    document.getElementById('donut').style.background =
+      `conic-gradient(var(--blue) 0 ${invoice}%, var(--orange) ${invoice}% ${invoice + bill}%, var(--green) ${invoice + bill}% 100%)`;
+    document.getElementById('donutLegend').innerHTML = `
+      <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Invoice Discounting — ${invoice}%</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--orange)"></span>Bill Discounting — ${bill}%</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Export Factoring — ${exp}%</div>
+    `;
+
+    document.getElementById('branchTable').innerHTML = branchRisk.map(b => `
+      <tr>
+        <td>${b.name}</td>
+        <td>₹ ${b.out.toFixed(1)}</td>
+        <td>${b.npa.toFixed(2)}%</td>
+        <td>${b.trend}</td>
+        <td><span class="risk-tag ${b.risk}">${b.risk.toUpperCase()}</span></td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('branchChips').addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    document.querySelectorAll('#branchChips .chip').forEach(c => c.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    state.branch = btn.dataset.branch;
+    render();
+  });
+  document.getElementById('productChips').addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    document.querySelectorAll('#productChips .chip').forEach(c => c.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    state.product = btn.dataset.product;
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SBI Factors Hub — SSO Portal Demo</title>
+<style>
+  :root {
+    --navy: #0f1d4a; --navy-2: #16265e; --accent: #3b82f6; --accent-2: #06b6d4;
+    --bg: #eef1f8; --panel: #ffffff; --border: #e2e7f3; --text: #101828; --text-dim: #667085;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); }
+
+  .topbar {
+    background: linear-gradient(90deg, var(--navy), var(--navy-2)); color: #fff; padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  .topbar__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .topbar__brand .logo {
+    width: 30px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+  }
+  .demo-badge {
+    background: rgba(6,182,212,0.15); color: #67e8f9; border: 1px solid rgba(6,182,212,0.4);
+    padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .user-pill { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+  .user-pill .av { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; }
+
+  .notice {
+    background: #fffbeb; border-bottom: 1px solid #fde68a; color: #92400e; font-size: 0.84rem;
+    padding: 9px 28px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+  }
+  .notice strong { font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px; }
+
+  .search-row { margin-bottom: 24px; position: relative; }
+  .search-row input {
+    width: 100%; padding: 13px 16px 13px 42px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel); font-size: 0.95rem; outline: none; transition: border-color 0.15s ease;
+  }
+  .search-row input:focus { border-color: var(--accent); }
+  .search-row .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
+
+  .section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); font-weight: 700; margin: 0 0 14px; }
+
+  .app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 30px; }
+  .app-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; text-align: center;
+  }
+  .app-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(15,29,74,0.1); border-color: var(--accent); }
+  .app-card__icon {
+    width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.9rem; color: #fff;
+  }
+  .app-card__name { font-size: 0.82rem; font-weight: 600; }
+  .app-card__sub { font-size: 0.68rem; color: var(--text-dim); }
+  .app-card.is-hidden { display: none; }
+
+  .appreciation {
+    background: linear-gradient(135deg, #fef3c7, #fde68a20), var(--panel);
+    border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .appreciation h3 { margin: 0 0 4px; font-size: 0.95rem; }
+  .appreciation .sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 14px; }
+  .kudos-card { display: flex; gap: 12px; align-items: flex-start; }
+  .kudos-card .av { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.8rem; }
+  .kudos-card .msg { font-size: 0.86rem; }
+  .kudos-card .msg .from { font-weight: 700; }
+  .kudos-dots { display: flex; gap: 6px; margin-top: 14px; }
+  .kudos-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); cursor: pointer; }
+  .kudos-dots span.is-active { background: var(--accent); }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--navy); color: #fff; padding: 12px 22px; border-radius: 10px; font-size: 0.86rem;
+    display: flex; align-items: center; gap: 10px; transition: all 0.25s ease; pointer-events: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 50;
+  }
+  .toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .spinner {
+    width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footnote { text-align: center; color: var(--text-dim); font-size: 0.76rem; margin-top: 10px; padding-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__brand"><div class="logo">🔐</div> SBI Factors Hub</div>
+  <span class="demo-badge">SANITIZED DEMO · FICTIONAL APPS &amp; DATA</span>
+  <div class="user-pill"><div class="av">BB</div> Bhumi B. · IT Dept</div>
+</div>
+
+<div class="notice">✈️ Travel Notice: Quest2Travel maintenance window in <strong id="countdown">--:--:--</strong></div>
+
+<div class="wrap">
+
+  <div class="search-row">
+    <span class="icon">🔍</span>
+    <input type="text" id="appSearch" placeholder="Search apps — Salesforce, DMS, TMS, HRMS, LOS...">
+  </div>
+
+  <p class="section-title">Your applications</p>
+  <div class="app-grid" id="appGrid">
+    <div class="app-card" data-name="Salesforce"><div class="app-card__icon" style="background:#00a1e0">SF</div><div class="app-card__name">Salesforce</div><div class="app-card__sub">CRM</div></div>
+    <div class="app-card" data-name="DMS"><div class="app-card__icon" style="background:#7c3aed">DM</div><div class="app-card__name">DMS</div><div class="app-card__sub">Documents</div></div>
+    <div class="app-card" data-name="TMS"><div class="app-card__icon" style="background:#0891b2">TM</div><div class="app-card__name">TMS</div><div class="app-card__sub">Treasury</div></div>
+    <div class="app-card" data-name="HRMS"><div class="app-card__icon" style="background:#dc2626">HR</div><div class="app-card__name">HRMS</div><div class="app-card__sub">Human Resources</div></div>
+    <div class="app-card" data-name="LOS"><div class="app-card__icon" style="background:#16a34a">LO</div><div class="app-card__name">LOS</div><div class="app-card__sub">Loan Origination</div></div>
+    <div class="app-card" data-name="Factorin"><div class="app-card__icon" style="background:#ea580c">FN</div><div class="app-card__name">Factorin</div><div class="app-card__sub">Factoring Core</div></div>
+    <div class="app-card" data-name="BoardPAC"><div class="app-card__icon" style="background:#4338ca">BP</div><div class="app-card__name">BoardPAC</div><div class="app-card__sub">Board Portal</div></div>
+    <div class="app-card" data-name="Quest2Travel"><div class="app-card__icon" style="background:#0d9488">Q2</div><div class="app-card__name">Quest2Travel</div><div class="app-card__sub">Travel Desk</div></div>
+  </div>
+
+  <div class="appreciation">
+    <h3>🏆 Appreciation Corner</h3>
+    <div class="sub">Recognizing colleagues making an impact this month</div>
+    <div id="kudosSlot"></div>
+    <div class="kudos-dots" id="kudosDots"></div>
+  </div>
+
+  <p class="footnote">Reconstructed portfolio demo of the internal SSO hub — app names are illustrative, no real credentials or systems are involved.</p>
+</div>
+
+<div class="toast" id="toast"><span class="spinner"></span><span id="toastText">Redirecting…</span></div>
+
+<script>
+  // Search filter
+  document.getElementById('appSearch').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll('.app-card').forEach(card => {
+      const match = card.dataset.name.toLowerCase().includes(q);
+      card.classList.toggle('is-hidden', !match);
+    });
+  });
+
+  // Fake SSO launch toast
+  const toast = document.getElementById('toast');
+  const toastText = document.getElementById('toastText');
+  let toastTimer;
+  document.getElementById('appGrid').addEventListener('click', (e) => {
+    const card = e.target.closest('.app-card');
+    if (!card) return;
+    clearTimeout(toastTimer);
+    toastText.textContent = `Authenticating SSO session for ${card.dataset.name}…`;
+    toast.classList.add('is-visible');
+    setTimeout(() => { toastText.textContent = `Redirected to ${card.dataset.name} (demo — no real app opens)`; }, 900);
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 2600);
+  });
+
+  // Countdown timer travel notice
+  const target = Date.now() + (2 * 3600 + 14 * 60 + 8) * 1000;
+  function tickCountdown() {
+    const remain = Math.max(0, target - Date.now());
+    const h = String(Math.floor(remain / 3600000)).padStart(2, '0');
+    const m = String(Math.floor((remain % 3600000) / 60000)).padStart(2, '0');
+    const s = String(Math.floor((remain % 60000) / 1000)).padStart(2, '0');
+    document.getElementById('countdown').textContent = `${h}:${m}:${s}`;
+  }
+  tickCountdown();
+  setInterval(tickCountdown, 1000);
+
+  // Appreciation corner carousel
+  const kudos = [
+    { name: 'Priya S.', dept: 'Credit', msg: 'went above and beyond helping close the quarter-end FIU reconciliation ahead of schedule.' },
+    { name: 'Rahul M.', dept: 'Operations', msg: 'streamlined the invoice booking process, cutting turnaround time by half for the Chennai branch.' },
+    { name: 'Ananya D.', dept: 'Legal', msg: 'kept the audit trail spotless during a surprise RBI inspection — huge team save.' },
+  ];
+  let kIndex = 0;
+  const kudosSlot = document.getElementById('kudosSlot');
+  const kudosDots = document.getElementById('kudosDots');
+  kudosDots.innerHTML = kudos.map((_, i) => `<span data-i="${i}" class="${i === 0 ? 'is-active' : ''}"></span>`).join('');
+  function renderKudos() {
+    const k = kudos[kIndex];
+    kudosSlot.innerHTML = `<div class="kudos-card"><div class="av">${k.name.split(' ').map(w=>w[0]).join('')}</div><div class="msg"><span class="from">${k.name}</span> · ${k.dept} — ${k.msg}</div></div>`;
+    document.querySelectorAll('.kudos-dots span').forEach((d, i) => d.classList.toggle('is-active', i === kIndex));
+  }
+  kudosDots.addEventListener('click', (e) => {
+    const dot = e.target.closest('span');
+    if (!dot) return;
+    kIndex = Number(dot.dataset.i);
+    renderKudos();
+  });
+  renderKudos();
+  setInterval(() => { kIndex = (kIndex + 1) % kudos.length; renderKudos(); }, 5000);
+</script>
+</body>
+</html>

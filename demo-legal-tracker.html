@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Cases Tracker — Demo</title>
+<style>
+  :root {
+    --maroon: #581c1c; --maroon-2: #7f1d1d; --accent: #9d2f2f; --gold: #b45309; --green: #16a34a; --blue: #1d4ed8;
+    --bg: #f6f4f2; --panel: #ffffff; --border: #e7e0dc; --text: #1c1917; --text-dim: #78716c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); }
+
+  .topbar { background: linear-gradient(90deg, var(--maroon), var(--maroon-2)); color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .topbar__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .topbar__brand .logo { width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+  .demo-badge { background: rgba(255,255,255,0.15); color: #fecaca; border: 1px solid rgba(255,255,255,0.3); padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; }
+
+  .wrap { max-width: 1150px; margin: 0 auto; padding: 24px; }
+
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+  .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { padding: 6px 13px; border-radius: 999px; border: 1px solid var(--border); background: #fff; font-size: 0.8rem; cursor: pointer; }
+  .chip.is-active { background: var(--maroon); color: #fff; border-color: var(--maroon); }
+  .btn-new { background: var(--maroon); color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; font-weight: 600; }
+
+  .grid-2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel-box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .panel-box-pad { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .panel-box-pad h3 { margin: 0 0 4px; font-size: 0.98rem; }
+  .panel-box-pad .sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 16px; }
+
+  table.case-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  table.case-table th { text-align: left; color: var(--text-dim); font-weight: 600; padding: 10px 14px; border-bottom: 2px solid var(--border); font-size: 0.7rem; text-transform: uppercase; background: #fafafa; }
+  table.case-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; }
+  table.case-table tr:hover td { background: #fdf6f6; }
+  table.case-table tr.is-selected td { background: #fbeaea; }
+  table.case-table tr.is-hidden { display: none; }
+
+  .status-tag { padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+  .status-tag.active { background: #dbeafe; color: #1e40af; }
+  .status-tag.pending { background: #fef3c7; color: #92400e; }
+  .status-tag.closed { background: #dcfce7; color: #166534; }
+
+  .timeline { position: relative; padding-left: 22px; }
+  .timeline::before { content: ''; position: absolute; left: 6px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+  .t-item { position: relative; padding-bottom: 18px; }
+  .t-item:last-child { padding-bottom: 0; }
+  .t-item::before { content: ''; position: absolute; left: -22px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--panel); box-shadow: 0 0 0 1px var(--accent); }
+  .t-item .t-date { font-size: 0.72rem; color: var(--text-dim); font-weight: 700; }
+  .t-item .t-desc { font-size: 0.86rem; margin-top: 2px; }
+
+  .case-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; font-size: 0.84rem; }
+  .case-meta div span { display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+
+  .footnote { text-align: center; color: var(--text-dim); font-size: 0.76rem; margin: 18px 0 6px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__brand"><div class="logo">⚖️</div> Legal Cases Tracker</div>
+  <span class="demo-badge">SANITIZED DEMO · ILLUSTRATIVE DATA ONLY</span>
+</div>
+
+<div class="wrap">
+
+  <div class="toolbar">
+    <div class="filter-chips" id="statusChips">
+      <button class="chip is-active" data-status="all">All Cases</button>
+      <button class="chip" data-status="active">Active</button>
+      <button class="chip" data-status="pending">Pending</button>
+      <button class="chip" data-status="closed">Closed</button>
+    </div>
+    <button class="btn-new" id="btnNewCase">+ Log New Case</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel-box">
+      <table class="case-table">
+        <thead><tr><th>Case ID</th><th>Client</th><th>Court</th><th>Status</th><th>Next Hearing</th></tr></thead>
+        <tbody id="caseBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel-box-pad" id="detailPanel"></div>
+  </div>
+
+  <p class="footnote">Reconstructed portfolio demo of the internal legal case-management system — case names, courts, and dates are illustrative, no real litigation data is shown.</p>
+</div>
+
+<script>
+  const cases = [
+    { id: 'LEG-201', client: 'Vantage Industries Ltd', court: 'Mumbai High Court', status: 'active', hearing: '2026-08-04',
+      history: [
+        { date: '2026-01-12', desc: 'Case filed — recovery suit for outstanding dues ₹2.4 Cr' },
+        { date: '2026-03-20', desc: 'First hearing — respondent sought adjournment' },
+        { date: '2026-06-15', desc: 'Second hearing — evidence submission completed' },
+        { date: '2026-08-04', desc: 'Next hearing scheduled — final arguments' },
+      ] },
+    { id: 'LEG-198', client: 'Riverstone Exports', court: 'NCLT Mumbai', status: 'pending', hearing: '2026-09-10',
+      history: [
+        { date: '2026-02-02', desc: 'Insolvency application filed against defaulting client' },
+        { date: '2026-05-18', desc: 'Admission hearing — application admitted' },
+        { date: '2026-09-10', desc: 'Next hearing scheduled — resolution plan review' },
+      ] },
+    { id: 'LEG-193', client: 'Bluepeak Traders', court: 'DRT Mumbai', status: 'active', hearing: '2026-07-29',
+      history: [
+        { date: '2025-11-08', desc: 'Case filed — SARFAESI recovery proceedings initiated' },
+        { date: '2026-02-14', desc: 'First hearing — notice served to respondent' },
+        { date: '2026-07-29', desc: 'Next hearing scheduled — response review' },
+      ] },
+    { id: 'LEG-187', client: 'Coral Bay Exports LLC', court: 'Mumbai High Court', status: 'closed', hearing: '—',
+      history: [
+        { date: '2025-06-01', desc: 'Case filed — breach of factoring agreement' },
+        { date: '2025-09-22', desc: 'Hearing — settlement discussions initiated' },
+        { date: '2025-12-10', desc: 'Case closed — settled out of court, dues recovered' },
+      ] },
+    { id: 'LEG-180', client: 'Northgate Traders Ltd', court: 'DRT Mumbai', status: 'closed', hearing: '—',
+      history: [
+        { date: '2025-03-15', desc: 'Case filed — recovery of overdue factoring limit' },
+        { date: '2025-07-30', desc: 'Hearing — order passed in favour of company' },
+        { date: '2025-08-20', desc: 'Case closed — recovery certificate issued' },
+      ] },
+  ];
+
+  let currentStatus = 'all';
+  let selectedId = cases[0].id;
+
+  function renderTable() {
+    const body = document.getElementById('caseBody');
+    body.innerHTML = cases
+      .filter(c => currentStatus === 'all' || c.status === currentStatus)
+      .map(c => `
+        <tr data-id="${c.id}" class="${c.id === selectedId ? 'is-selected' : ''}">
+          <td><strong>${c.id}</strong></td>
+          <td>${c.client}</td>
+          <td>${c.court}</td>
+          <td><span class="status-tag ${c.status}">${c.status.toUpperCase()}</span></td>
+          <td>${c.hearing}</td>
+        </tr>`).join('');
+  }
+
+  function renderDetail() {
+    const c = cases.find(c => c.id === selectedId);
+    const panel = document.getElementById('detailPanel');
+    if (!c) { panel.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">Select a case to view its history.</p>'; return; }
+    panel.innerHTML = `
+      <h3>${c.id} — ${c.client}</h3>
+      <div class="sub">${c.court}</div>
+      <div class="case-meta">
+        <div><span>Status</span><span class="status-tag ${c.status}">${c.status.toUpperCase()}</span></div>
+        <div><span>Next Hearing</span>${c.hearing}</div>
+      </div>
+      <div class="timeline">${c.history.map(h => `<div class="t-item"><div class="t-date">${h.date}</div><div class="t-desc">${h.desc}</div></div>`).join('')}</div>
+    `;
+  }
+
+  document.getElementById('statusChips').addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    document.querySelectorAll('#statusChips .chip').forEach(c => c.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    currentStatus = btn.dataset.status;
+    renderTable();
+  });
+
+  document.getElementById('caseBody').addEventListener('click', (e) => {
+    const row = e.target.closest('tr');
+    if (!row) return;
+    selectedId = row.dataset.id;
+    renderTable();
+    renderDetail();
+  });
+
+  let newCounter = 202;
+  document.getElementById('btnNewCase').addEventListener('click', () => {
+    const id = `LEG-${newCounter++}`;
+    const newCase = { id, client: 'New Client (demo entry)', court: 'Mumbai High Court', status: 'pending', hearing: '2026-10-01',
+      history: [{ date: new Date().toISOString().slice(0,10), desc: 'Case logged via demo form' }] };
+    cases.unshift(newCase);
+    selectedId = id;
+    renderTable();
+    renderDetail();
+  });
+
+  renderTable();
+  renderDetail();
+</script>
+</body>
+</html>
