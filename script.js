@@ -182,7 +182,7 @@ const glitchEl = document.getElementById('glitchText');
 if (glitchEl) {
   const glitchPhrases = [
     '_//Manual work... Automated away//_',
-    '_//1.7+ years... shipping daily//_',
+    '_//1.8+ years... shipping daily//_',
     '_//Data Analyst & Automation Engineer//_',
     '_//Open to Data & AI roles//_',
   ];

@@ -50,6 +50,29 @@ function initOrbital() {
     return ((now - pageLoadTime) % IDLE_DURATION_MS) / IDLE_DURATION_MS * 360;
   }
 
+  // Browsers paint preserve-3d correctly (the frontmost card visually
+  // overlaps the rest) but several engines do NOT hit-test pointer events
+  // against that same 3D depth — clicks/taps resolve against raw DOM paint
+  // order instead, so whichever card happens to be last in the DOM can
+  // swallow every tap regardless of which card is actually in front. Mirror
+  // the true depth order into z-index every frame so hit-testing and the
+  // visual stacking always agree.
+  function updateDepth(rotY) {
+    cards.forEach((card, i) => {
+      const worldAngle = (((i / COUNT) * 360 + rotY) % 360 + 360) % 360;
+      const depth = (Math.cos((worldAngle * Math.PI) / 180) + 1) / 2;
+      card.style.opacity = (0.35 + depth * 0.65).toFixed(2);
+      card.style.zIndex = Math.round(depth * 1000);
+    });
+  }
+
+  function idleTick(now) {
+    if (jsControlled) return;
+    updateDepth(idleRotY(now));
+    requestAnimationFrame(idleTick);
+  }
+  requestAnimationFrame(idleTick);
+
   function takeControl() {
     if (jsControlled) return;
     jsControlled = true;
@@ -121,11 +144,7 @@ function initOrbital() {
 
     ring.style.transform = `rotateX(${rotX.toFixed(3)}deg) rotateY(${displayRotY.toFixed(3)}deg)`;
 
-    cards.forEach((card, i) => {
-      const worldAngle = (((i / COUNT) * 360 + displayRotY) % 360 + 360) % 360;
-      const depth = (Math.cos((worldAngle * Math.PI) / 180) + 1) / 2;
-      card.style.opacity = (0.35 + depth * 0.65).toFixed(2);
-    });
+    updateDepth(displayRotY);
 
     if (shadow) {
       const shiftX = Math.sin((displayRotY * Math.PI) / 180) * 60;
